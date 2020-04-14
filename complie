@@ -1,0 +1,327 @@
+#include<stdio.h>
+#include<string.h>
+#include<stdlib.h>
+typedef struct{
+	int type;
+	char name[30];
+}Word;
+char CH;
+char Identifi[11][10]={"void","int","float","char","if","else","while","do","for","return","main"};
+Word words[100];      //记录最后词法的名称和种别码 
+char Num[300];  //用来储存空格前后的字符串
+char InputWord[1000];       //所有输入的单词
+int number;    //用来取数时的计数
+int j;   
+void Input(){      //輸入函數
+	char ch;
+	int i=0;
+	while(1){
+		ch=getchar();
+		InputWord[i++]=ch;
+		if(ch=='#') break;
+	}
+}
+char GetChar(){    //一次取一个字符
+	char ch;
+	ch=InputWord[number++];
+	return ch;
+}   
+void DeletSpace(){  //过滤空格
+	while(CH==' '){
+		CH=InputWord[number++];
+	}
+}
+int JudgeNumber(){   //判断字符是否为数字
+	if(CH>='0'&&CH<='9'){
+		return 1;
+	}
+	return 0;
+}
+int JudgeChar(){     //判断字符是否为字母
+	if(CH>='a'&&CH<='z'||CH>='A'&&CH<='Z'){
+		return 1;
+	}
+	return 0;
+}
+int JudgeId(){      //判断关键字
+	int i=0;
+	for(i;i<11;i++){
+		if(strcmp(Identifi[i],Num)==0){
+			return i+3;
+		}
+	}
+	return 0;
+}
+void Connect(){        //连接函数
+	Num[j++]=CH;
+}
+Word *ScanWord(){
+	Word *newword;
+	newword=new Word();
+	for(int i=0;i<30;i++){
+		newword->name[i]='\0';
+	}
+	newword->type=-1;  //-1表示为空
+	memset(Num,0,sizeof(char) *30);
+	CH=GetChar();
+	DeletSpace();
+	if(JudgeChar()){   //识别关键字
+		while(JudgeChar()||JudgeNumber()){
+			Connect();
+			CH=GetChar();
+		}
+		number--;
+		if(JudgeId()==0){
+			newword->type=1;
+			strcpy(newword->name,Num);
+		}
+		else{
+			newword->type=JudgeId();
+			strcpy(newword->name,Num);
+		}
+	}
+	else if(JudgeNumber()){                //判断数字
+		while(JudgeNumber()||JudgeChar()){
+			Connect();
+			CH=GetChar();
+		}
+		number--;
+		newword->type=2;
+		strcpy(newword->name,Num);
+	}
+	else if(CH=='/'){    ////识别注释
+		CH=GetChar();
+		if(CH=='/'){
+			while(CH!='\n'){
+				CH=GetChar();
+			}
+		}
+		else if(CH=='*'){
+			while(1){
+				CH=GetChar();
+				if(CH=='*'&&InputWord[number]=='/') break;
+			}
+			number++;
+		}
+		
+	}
+	else if(CH=='\n'){
+		newword->type=-2;
+		newword->name[0]=0;
+
+	}
+	else switch(CH){
+		case '+':
+			{
+				newword->type=14;
+				newword->name[0]='+';
+				break;
+			}
+		case '-':
+			{
+				newword->type=15;
+				newword->name[0]='-';
+				break;
+			}
+		case '/':
+			{
+				newword->type=17;
+				newword->name[0]='/';
+				break;
+			}
+		case '*':
+			{
+				newword->type=16;
+				newword->name[0]='*';
+				break;
+			}
+		case '%':
+			{
+				newword->type=18;
+				newword->name[0]='%';
+				break;
+			}
+		case '<':
+			{
+				if(InputWord[number]=='='){
+					newword->type=20;
+					strcpy(newword->name,"<=");
+					number++;
+				}
+				else{
+					newword->type=19;
+					newword->name[0]='<';
+				}
+				break;
+			}
+		case '>':
+			{
+				if(InputWord[number]=='='){
+					newword->type=22;
+					strcpy(newword->name,">=");
+					number++;
+				}
+				else{
+					newword->type=21;
+					newword->name[0]='>';
+				}
+				break;
+			}
+		case '=':
+			{
+				if(InputWord[number]=='='){
+					newword->type=23;
+					strcpy(newword->name,"==");
+					number++;
+				}
+				else{
+					newword->type=27;
+					newword->name[0]='=';
+				}
+				break;
+			}
+		case '!':
+			{
+				if(InputWord[number]=='='){
+					newword->type=24;
+					strcpy(newword->name,"!=");
+					number++;
+				}
+				break;
+			}
+		case '&':
+			{
+				if(InputWord[number]=='&'){
+					newword->type=25;
+					strcpy(newword->name,"&&");
+					number++;
+				}
+				break;
+			}
+		case '|':
+			{
+				if(InputWord[number]=='|'){
+					newword->type=26;
+					strcpy(newword->name,"||");
+					number++;
+				}
+				break;
+			}
+		case '(':
+			{
+				newword->type=28;
+				newword->name[0]='(';
+				break;
+			}
+		case ')':
+			{
+				newword->type=29;
+				newword->name[0]=')';
+				break;
+			}
+		case '[':
+			{
+				newword->type=30;
+				newword->name[0]='[';
+				break;
+			}
+		case ']':
+			{
+				newword->type=31;
+				newword->name[0]=']';
+				break;
+			}
+		case '{':
+			{
+				newword->type=32;
+				newword->name[0]='{';
+				break;
+			}
+		case '}':
+			{
+				newword->type=33;
+				newword->name[0]='}';
+				break;
+			}
+		case ';':
+			{
+				newword->type=34;
+				newword->name[0]=';';
+				break;
+			}
+		case ',':
+			{
+				newword->type=35;
+				newword->name[0]=',';
+				break;
+			}
+		case '#':
+			{
+				newword->type=-3;
+				newword->name[0]='#';
+				break;
+			}
+		}
+	j=0;
+	return newword;
+}
+void Output(){
+	int row=1;
+	int Error[10],k=0;
+	memset(Error,0,sizeof (int) *10);
+	for(int i=0;i<2000;i++){
+		if(words[i].type==-2){
+			while(words[i].type==-2){
+				i++;
+			}
+			printf("\n");
+			row++;
+		}
+		if(strcmp(words[i].name,"#")==0) break;
+		if(words[i].type!=-2){
+			if(words[i].type ==1) printf("<%d,%s>,",words[i].type,words[i].name);
+			else if(words[i].type==2){
+				char t1;
+				t1=words[i].name[0];
+				int flag=0;
+				char *p;
+				p=words[i].name;
+				for(p=p+1;*p!='\0';p++){
+					if((*p>='a'&&*p<='z')||(*p>='A'&&*p<='Z')){
+						printf("LexicalError,");
+						Error[k++]=row;
+						flag=1;
+						break;
+					}
+				}
+				if(flag==0){
+					printf("<%d,%s>,",words[i].type,words[i].name);
+				}
+			}
+		else
+			printf("<%d,->,",words[i].type);
+		}
+	}
+if(Error[0]!=0){
+	printf("\nLexicalError(s) on line(s) ");
+	for(int i=0;i<k;i++){
+		printf("%d,",Error[i]);
+	}
+}
+}
+int main(){
+	Input();
+	Word *word1;
+	number=0;
+	int i=0;
+	while(1){
+		word1=ScanWord();
+		if(word1->type!=-1){
+			words[i].type=word1->type;
+			strcpy(words[i++].name,word1->name);
+			if(strcmp(word1->name,"#")==0) break;
+		}
+	}
+	Output();
+	return 0;
+}
